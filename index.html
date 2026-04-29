@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EUR ↔ IDR">
+<meta name="theme-color" content="#0a3d2e">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230a3d2e'/%3E%3Ctext x='90' y='118' font-family='Georgia,serif' font-size='90' fill='%23f4ead5' text-anchor='middle' font-weight='400'%3E€%3C/text%3E%3C/svg%3E">
+<title>EUR ↔ IDR</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4ead5;
+    --bg-deep: #ebe0c4;
+    --ink: #1a2e26;
+    --ink-soft: #4a5c54;
+    --ink-muted: #8a9590;
+    --accent: #0a3d2e;
+    --accent-soft: #1d5a45;
+    --highlight: #d97742;
+    --line: rgba(26, 46, 38, 0.12);
+    --card: #faf3e1;
+    --shadow: 0 1px 2px rgba(26, 46, 38, 0.04), 0 8px 24px rgba(26, 46, 38, 0.06);
+  }
+
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background-image:
+      radial-gradient(ellipse at top right, rgba(217, 119, 66, 0.08), transparent 50%),
+      radial-gradient(ellipse at bottom left, rgba(10, 61, 46, 0.06), transparent 50%);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 24px 22px 32px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+  }
+
+  .brand {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .brand em {
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-top: 6px;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding-top: 4px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #5fa881;
+    box-shadow: 0 0 0 3px rgba(95, 168, 129, 0.18);
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+
+  .status-dot.offline {
+    background: var(--highlight);
+    box-shadow: 0 0 0 3px rgba(217, 119, 66, 0.18);
+  }
+
+  .rate-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rate-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at top right, rgba(217, 119, 66, 0.12), transparent 70%);
+    pointer-events: none;
+  }
+
+  .rate-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+
+  .rate-value {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .rate-value .num {
+    font-weight: 500;
+  }
+
+  .rate-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--accent);
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+    -webkit-touch-callout: none;
+  }
+
+  .refresh-btn:active {
+    background: var(--accent);
+    color: var(--bg);
+    transform: scale(0.96);
+  }
+
+  .refresh-btn.spinning svg {
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .converter {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .input-group {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    transition: border-color 0.2s;
+  }
+
+  .input-group:focus-within {
+    border-color: var(--accent-soft);
+  }
+
+  .input-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .currency-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .flag {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    font-size: 14px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(26, 46, 38, 0.15);
+  }
+
+  .currency-name {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .currency-code {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .amount-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .symbol {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 28px;
+    color: var(--ink-soft);
+    font-weight: 300;
+    flex-shrink: 0;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 36px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    outline: none;
+    width: 100%;
+    min-width: 0;
+    -webkit-appearance: none;
+    padding: 4px 0;
+  }
+
+  input[type="text"]::placeholder {
+    color: var(--ink-muted);
+    opacity: 0.5;
+  }
+
+  .swap-wrap {
+    display: flex;
+    justify-content: center;
+    margin: -2px 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .swap-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 4px solid var(--bg);
+    color: var(--bg);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 12px rgba(10, 61, 46, 0.2);
+  }
+
+  .swap-btn:active {
+    transform: scale(0.92);
+  }
+
+  .swap-btn.flipped {
+    transform: rotate(180deg);
+  }
+
+  .quick {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .quick-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 11px 4px;
+    border-radius: 12px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-touch-callout: none;
+  }
+
+  .quick-btn:active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    transform: scale(0.96);
+  }
+
+  .footer {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .footer .install-hint {
+    margin-top: 6px;
+    font-style: italic;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 12px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: 100px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 100;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .app > * {
+    animation: fadeUp 0.5s ease-out backwards;
+  }
+  .app > *:nth-child(1) { animation-delay: 0.05s; }
+  .app > *:nth-child(2) { animation-delay: 0.1s; }
+  .app > *:nth-child(3) { animation-delay: 0.15s; }
+  .app > *:nth-child(4) { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div>
+      <div class="brand">Rupiah <em>&</em> Euro</div>
+      <div class="brand-sub">Wisselkoers</div>
+    </div>
+    <div class="status" id="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Live</span>
+    </div>
+  </header>
+
+  <div class="rate-card">
+    <div class="rate-label">Huidige koers</div>
+    <div class="rate-value">
+      <span>1 € = </span><span class="num" id="rateDisplay">—</span><span> Rp</span>
+    </div>
+    <div class="rate-meta">
+      <span id="rateUpdated">Laden…</span>
+      <button class="refresh-btn" id="refreshBtn" aria-label="Vernieuwen">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+          <path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+          <path d="M3 21v-5h5"/>
+        </svg>
+        Ververs
+      </button>
+    </div>
+  </div>
+
+  <div class="converter">
+
+    <div class="input-group" id="topGroup">
+      <div class="input-header">
+        <div class="currency-tag">
+          <div class="flag" id="topFlag" style="background: linear-gradient(180deg, #ae1c28 33.33%, #ffffff 33.33%, #ffffff 66.66%, #21468b 66.66%);"></div>
+          <div>
+            <div class="currency-name" id="topName">Euro</div>
+            <div class="currency-code" id="topCode">EUR · Nederland</div>
+          </div>
+        </div>
+      </div>
+      <div class="amount-row">
+        <span class="symbol" id="topSymbol">€</span>
+        <input type="text" id="topInput" inputmode="decimal" placeholder="0" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="swap-wrap">
+      <button class="swap-btn" id="swapBtn" aria-label="Wissel valuta">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 4v16M7 4l-3 3M7 4l3 3"/>
+          <path d="M17 20V4M17 20l-3-3M17 20l3-3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="input-group" id="bottomGroup">
+      <div class="input-header">
+        <div class="currency-tag">
+          <div class="flag" id="bottomFlag" style="background: linear-gradient(180deg, #ce1126 50%, #ffffff 50%);"></div>
+          <div>
+            <div class="currency-name" id="bottomName">Rupiah</div>
+            <div class="currency-code" id="bottomCode">IDR · Indonesië</div>
+          </div>
+        </div>
+      </div>
+      <div class="amount-row">
+        <span class="symbol" id="bottomSymbol">Rp</span>
+        <input type="text" id="bottomInput" inputmode="decimal" placeholder="0" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="quick" id="quickAmounts"></div>
+
+  </div>
+
+  <div class="footer">
+    Bron: exchangerate-api.com · open data
+    <div class="install-hint">Tip: tik op deel → Zet op beginscherm</div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'eur_idr_rate_v1';
+  const API_ENDPOINTS = [
+    {
+      url: 'https://open.er-api.com/v6/latest/EUR',
+      parse: (d) => (d.result === 'success' && d.rates && d.rates.IDR) ? d.rates.IDR : null
+    },
+    {
+      url: 'https://api.exchangerate-api.com/v4/latest/EUR',
+      parse: (d) => (d.rates && d.rates.IDR) ? d.rates.IDR : null
+    },
+    {
+      url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json',
+      parse: (d) => (d.eur && d.eur.idr) ? d.eur.idr : null
+    },
+    {
+      url: 'https://latest.currency-api.pages.dev/v1/currencies/eur.json',
+      parse: (d) => (d.eur && d.eur.idr) ? d.eur.idr : null
+    }
+  ];
+
+  const FALLBACK_RATE = 20193;
+  const FALLBACK_DATE_MS = new Date('2026-04-29').getTime();
+
+  let fromCurrency = 'EUR';
+  let rate = null;
+  let lastUpdated = null;
+  let isOnline = navigator.onLine;
+  let lastEditedField = 'top';
+
+  const topInput = document.getElementById('topInput');
+  const bottomInput = document.getElementById('bottomInput');
+  const swapBtn = document.getElementById('swapBtn');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const rateDisplay = document.getElementById('rateDisplay');
+  const rateUpdated = document.getElementById('rateUpdated');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const toast = document.getElementById('toast');
+
+  const CURRENCIES = {
+    EUR: {
+      name: 'Euro',
+      sub: 'EUR · Nederland',
+      symbol: '€',
+      flag: 'linear-gradient(180deg, #ae1c28 33.33%, #ffffff 33.33%, #ffffff 66.66%, #21468b 66.66%)',
+      decimals: 2
+    },
+    IDR: {
+      name: 'Rupiah',
+      sub: 'IDR · Indonesië',
+      symbol: 'Rp',
+      flag: 'linear-gradient(180deg, #ce1126 50%, #ffffff 50%)',
+      decimals: 0
+    }
+  };
+
+  function formatNumber(n, decimals) {
+    if (n === '' || n === null || isNaN(n)) return '';
+    return new Intl.NumberFormat('nl-NL', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: decimals
+    }).format(n);
+  }
+
+  function parseInput(str) {
+    if (!str) return null;
+    let s = String(str).trim().replace(/\s/g, '');
+    if (s.includes('.') && s.includes(',')) {
+      const lastDot = s.lastIndexOf('.');
+      const lastComma = s.lastIndexOf(',');
+      if (lastComma > lastDot) {
+        s = s.replace(/\./g, '').replace(',', '.');
+      } else {
+        s = s.replace(/,/g, '');
+      }
+    } else if (s.includes(',')) {
+      s = s.replace(',', '.');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+
+  function loadCachedRate() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (data.rate && data.timestamp) {
+        rate = data.rate;
+        lastUpdated = new Date(data.timestamp);
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  function saveRate(r, ts) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        rate: r,
+        timestamp: ts || Date.now()
+      }));
+    } catch(e) {}
+  }
+
+  async function tryEndpoint(endpoint) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    try {
+      const res = await fetch(endpoint.url, {
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return endpoint.parse(data);
+    } catch (e) {
+      clearTimeout(timeout);
+      return null;
+    }
+  }
+
+  async function fetchRate() {
+    refreshBtn.classList.add('spinning');
+    let newRate = null;
+
+    for (const endpoint of API_ENDPOINTS) {
+      const r = await tryEndpoint(endpoint);
+      if (r && r > 0) {
+        newRate = r;
+        break;
+      }
+    }
+
+    if (newRate) {
+      rate = newRate;
+      lastUpdated = new Date();
+      saveRate(rate, lastUpdated.getTime());
+      isOnline = true;
+      updateStatus();
+      updateRateDisplay();
+      recompute();
+      showToast('Koers bijgewerkt');
+    } else {
+      isOnline = false;
+      updateStatus();
+      if (rate) {
+        showToast('Geen verbinding · cache gebruikt');
+      } else {
+        showToast('Geen koers beschikbaar');
+      }
+    }
+    setTimeout(() => refreshBtn.classList.remove('spinning'), 400);
+  }
+
+  function updateRateDisplay() {
+    if (rate) {
+      rateDisplay.textContent = formatNumber(rate, 0);
+      if (lastUpdated) {
+        rateUpdated.textContent = formatRelativeTime(lastUpdated);
+      }
+    } else {
+      rateDisplay.textContent = '—';
+      rateUpdated.textContent = 'Geen data beschikbaar';
+    }
+  }
+
+  function formatRelativeTime(date) {
+    const diff = Date.now() - date.getTime();
+    const min = Math.floor(diff / 60000);
+    const hr = Math.floor(diff / 3600000);
+    const day = Math.floor(diff / 86400000);
+    if (min < 1) return 'Zojuist bijgewerkt';
+    if (min < 60) return `${min} min geleden`;
+    if (hr < 24) return `${hr} uur geleden`;
+    if (day === 1) return 'Gisteren bijgewerkt';
+    return `${day} dagen geleden`;
+  }
+
+  function updateStatus() {
+    if (navigator.onLine && isOnline) {
+      statusDot.classList.remove('offline');
+      statusText.textContent = 'Live';
+    } else {
+      statusDot.classList.add('offline');
+      statusText.textContent = 'Offline';
+    }
+  }
+
+  function applyCurrencyLabels() {
+    const top = fromCurrency;
+    const bottom = top === 'EUR' ? 'IDR' : 'EUR';
+    const c = CURRENCIES;
+
+    document.getElementById('topName').textContent = c[top].name;
+    document.getElementById('topCode').textContent = c[top].sub;
+    document.getElementById('topSymbol').textContent = c[top].symbol;
+    document.getElementById('topFlag').style.background = c[top].flag;
+
+    document.getElementById('bottomName').textContent = c[bottom].name;
+    document.getElementById('bottomCode').textContent = c[bottom].sub;
+    document.getElementById('bottomSymbol').textContent = c[bottom].symbol;
+    document.getElementById('bottomFlag').style.background = c[bottom].flag;
+
+    topInput.inputMode = c[top].decimals > 0 ? 'decimal' : 'numeric';
+    bottomInput.inputMode = c[bottom].decimals > 0 ? 'decimal' : 'numeric';
+
+    renderQuickAmounts();
+  }
+
+  function renderQuickAmounts() {
+    const wrap = document.getElementById('quickAmounts');
+    wrap.innerHTML = '';
+    const presets = fromCurrency === 'EUR'
+      ? [{label: '€10', val: 10}, {label: '€50', val: 50}, {label: '€100', val: 100}, {label: '€500', val: 500}]
+      : [{label: '50k', val: 50000}, {label: '100k', val: 100000}, {label: '500k', val: 500000}, {label: '1M', val: 1000000}];
+
+    presets.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-btn';
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => {
+        topInput.value = formatNumber(p.val, CURRENCIES[fromCurrency].decimals);
+        lastEditedField = 'top';
+        recompute();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function recompute() {
+    if (!rate) return;
+    const top = fromCurrency;
+    const bottom = top === 'EUR' ? 'IDR' : 'EUR';
+
+    if (lastEditedField === 'top') {
+      const val = parseInput(topInput.value);
+      if (val === null) {
+        bottomInput.value = '';
+        return;
+      }
+      let result;
+      if (top === 'EUR') result = val * rate;
+      else                result = val / rate;
+      bottomInput.value = formatNumber(result, CURRENCIES[bottom].decimals);
+    } else {
+      const val = parseInput(bottomInput.value);
+      if (val === null) {
+        topInput.value = '';
+        return;
+      }
+      let result;
+      if (bottom === 'EUR') result = val * rate;
+      else                  result = val / rate;
+      topInput.value = formatNumber(result, CURRENCIES[top].decimals);
+    }
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  topInput.addEventListener('input', () => {
+    lastEditedField = 'top';
+    recompute();
+  });
+  bottomInput.addEventListener('input', () => {
+    lastEditedField = 'bottom';
+    recompute();
+  });
+
+  topInput.addEventListener('blur', () => {
+    const v = parseInput(topInput.value);
+    if (v !== null) topInput.value = formatNumber(v, CURRENCIES[fromCurrency].decimals);
+  });
+  bottomInput.addEventListener('blur', () => {
+    const bottom = fromCurrency === 'EUR' ? 'IDR' : 'EUR';
+    const v = parseInput(bottomInput.value);
+    if (v !== null) bottomInput.value = formatNumber(v, CURRENCIES[bottom].decimals);
+  });
+
+  swapBtn.addEventListener('click', () => {
+    fromCurrency = fromCurrency === 'EUR' ? 'IDR' : 'EUR';
+    swapBtn.classList.toggle('flipped');
+
+    const topVal = topInput.value;
+    const bottomVal = bottomInput.value;
+    topInput.value = bottomVal;
+    bottomInput.value = topVal;
+
+    applyCurrencyLabels();
+    lastEditedField = 'top';
+  });
+
+  refreshBtn.addEventListener('click', fetchRate);
+
+  window.addEventListener('online', () => {
+    isOnline = true;
+    updateStatus();
+    fetchRate();
+  });
+  window.addEventListener('offline', () => {
+    isOnline = false;
+    updateStatus();
+  });
+
+  setInterval(() => {
+    if (rate && lastUpdated) updateRateDisplay();
+  }, 60000);
+
+  applyCurrencyLabels();
+  const hadCache = loadCachedRate();
+  if (hadCache) {
+    updateRateDisplay();
+    topInput.value = formatNumber(1, 2);
+    lastEditedField = 'top';
+    recompute();
+  } else {
+    rate = FALLBACK_RATE;
+    lastUpdated = new Date(FALLBACK_DATE_MS);
+    updateRateDisplay();
+    topInput.value = formatNumber(1, 2);
+    lastEditedField = 'top';
+    recompute();
+  }
+  updateStatus();
+
+  if (navigator.onLine) {
+    fetchRate();
+  } else if (!hadCache) {
+    rateUpdated.textContent = 'Offline · referentiekoers';
+  }
+
+  document.querySelectorAll('button').forEach(b => {
+    b.addEventListener('touchend', e => e.preventDefault(), { passive: false });
+  });
+})();
+</script>
+</body>
+</html>
